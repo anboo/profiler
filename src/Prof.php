@@ -8,18 +8,18 @@ namespace Anboo\Profiler;
 class Prof
 {
     public static function release($release) {
-        ProfilerFactory::get()->setRelease($release);
+        Profiler::get()->setRelease($release);
     }
 
     public static function start($spanName) {
-        ProfilerFactory::get()->start($spanName);
+        Profiler::get()->start($spanName);
     }
 
     public static function end($spanName = null) {
-        ProfilerFactory::get()->end($spanName);
+        Profiler::get()->end($spanName);
     }
 
     public static function flush() {
-        ProfilerFactory::get()->flush();
+        Profiler::get()->flush();
     }
 }

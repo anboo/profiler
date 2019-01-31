@@ -5,7 +5,7 @@ namespace Anboo\Profiler;
 /**
  * Class ProfilerFactory
  */
-class ProfilerFactory
+class Profiler
 {
     /** @var self */
     private static $instance;
@@ -13,11 +13,18 @@ class ProfilerFactory
     /** @var string */
     private $release;
 
+    /** @var Configuration */
+    private $configuration;
+
     /** @var Span */
     private $lastSpan;
 
     /** @var Span[] */
     private $spans;
+
+    private function __construct()
+    {
+    }
 
     /**
      * @return self
@@ -28,7 +35,19 @@ class ProfilerFactory
             self::$instance = new self();
         }
 
+        if (!self::$instance->configuration) {
+            self::$instance->configuration = new Configuration();
+        }
+
         return self::$instance;
+    }
+
+    /**
+     * @param Configuration $configuration
+     */
+    public function setConfiguration(Configuration $configuration)
+    {
+        $this->configuration = $configuration;
     }
 
     /**
@@ -39,6 +58,10 @@ class ProfilerFactory
         $this->release = $release;
     }
 
+    /**
+     * @param string $spanName
+     * @param string $type
+     */
     public function start($spanName, $type = Span::TYPE_SIMPLE)
     {
         $span = new Span($spanName, $type, $this->lastSpan, $this->release);
@@ -46,6 +69,9 @@ class ProfilerFactory
         $this->lastSpan = $span;
     }
 
+    /**
+     * @param string|null $spanName
+     */
     public function end($spanName = null)
     {
         $span = $spanName ? $this->getSpan($spanName) : $this->lastSpan;
@@ -60,9 +86,29 @@ class ProfilerFactory
         }
     }
 
+    /**
+     * @return void
+     */
     public function flush()
     {
-        echo json_encode($this->spans);
+        $payload = json_encode($this->spans);
+        $timeout = 100;
+
+        $resource = @fsockopen('127.0.0.1', 27889, $errno, $errStr, $timeout);
+        @stream_set_blocking($resource, 0);
+        @fwrite($resource, $payload);
+        @fclose($resource);
+
+        if ($error = error_get_last()) {
+            $errorMsg = sprintf('Type: %s Message: %s, File: %s, Line: %s', $error['type'], $error['message'], $error['file'], $error['line']);
+            $this->reportProblem($errorMsg);
+        }
+
+        if ($errStr) {
+            $this->reportProblem($errStr);
+        }
+
+        echo $payload;
     }
 
     /**
@@ -78,5 +124,17 @@ class ProfilerFactory
         }
 
         return null;
+    }
+
+    /**
+     * @param string $msg
+     */
+    private function reportProblem($msg)
+    {
+        if ($this->configuration->getLogger()) {
+            $this->configuration->getLogger()->error($msg);
+        } else {
+            error_log($msg);
+        }
     }
 }

@@ -146,7 +146,7 @@ class Span implements \JsonSerializable
         $exception = new \Exception();
         $stackTrace = array_reverse($exception->getTrace());
 
-        $ignoreClasses = ['ProfilerFactory', 'Span', 'Prof'];
+        $ignoreClasses = [Profiler::class, Span::class, Prof::class];
         foreach ($stackTrace as $k => $stack) {
             if (isset($stack['class']) && in_array($stack['class'], $ignoreClasses)) {
                 unset($stackTrace[$k]);
