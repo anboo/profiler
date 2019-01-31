@@ -1,0 +1,17 @@
+{
+    "name": "anboo/profiler",
+    "description": "Profiler History php applications",
+    "type": "library",
+    "require": {
+        "ramsey/uuid": "^3.8"
+    },
+    "authors": [
+        {
+            "name": "anboo",
+            "email": "developer@rusdtaem.ru"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"Anboo\\Profiler\\": "src/"}
+    }
+}
