@@ -92,9 +92,15 @@ class Profiler
     public function flush()
     {
         $payload = json_encode($this->spans);
+        echo $payload;
         $timeout = 100;
 
         $resource = @fsockopen('127.0.0.1', 27889, $errno, $errStr, $timeout);
+        if (!$resource) {
+            $this->reportProblem($errStr);
+            return;
+        }
+
         @stream_set_blocking($resource, 0);
         @fwrite($resource, $payload);
         @fclose($resource);
@@ -103,12 +109,6 @@ class Profiler
             $errorMsg = sprintf('Type: %s Message: %s, File: %s, Line: %s', $error['type'], $error['message'], $error['file'], $error['line']);
             $this->reportProblem($errorMsg);
         }
-
-        if ($errStr) {
-            $this->reportProblem($errStr);
-        }
-
-        echo $payload;
     }
 
     /**

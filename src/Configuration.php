@@ -16,13 +16,27 @@ use Psr\Log\LoggerInterface;
 class Configuration
 {
     /** @var string */
-    private $host = '127.0.0.1';
+    private $host;
 
     /** @var integer */
-    private $port = '27889';
+    private $port;
 
     /** @var LoggerInterface */
     private $logger;
+
+    /**
+     * Configuration constructor.
+     *
+     * @param string $host
+     * @param int $port
+     * @param LoggerInterface $logger
+     */
+    public function __construct($host = '127.0.0.1', $port = 27889, LoggerInterface $logger = null)
+    {
+        $this->host = $host;
+        $this->port = $port;
+        $this->logger = $logger;
+    }
 
     /**
      * @param string  $host

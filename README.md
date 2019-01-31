@@ -26,3 +26,14 @@ Prof::start('request');
 Prof::end();
 Prof::flush();
 ```
+
+**Custom configuration**
+```php
+$logger = new \Monolog\Logger('app', [new \Monolog\Handler\StreamHandler('./log.txt')]);
+
+$configuration = new \Anboo\Profiler\Configuration();
+$configuration->setLogger($logger); //Report about problems
+$configuration->setConnection('127.0.0.1', 27889);
+
+Prof::configuration($configuration);
+```
