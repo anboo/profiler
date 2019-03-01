@@ -2,6 +2,8 @@
 
 namespace Anboo\Profiler;
 
+use Anboo\Profiler\DTO\PreparedRequestData;
+
 /**
  * Class ProfilerFactory
  */
@@ -33,6 +35,7 @@ class Profiler
     {
         if (!self::$instance) {
             self::$instance = new self();
+            register_shutdown_function([Prof::class, 'flush']);
         }
 
         if (!self::$instance->configuration) {
@@ -91,24 +94,12 @@ class Profiler
      */
     public function flush()
     {
-        $payload = json_encode($this->spans);
-        echo $payload;
-        $timeout = 100;
+        $requestData = new PreparedRequestData(
+            $this->configuration,
+            $this->spans
+        );
 
-        $resource = @fsockopen('127.0.0.1', 27889, $errno, $errStr, $timeout);
-        if (!$resource) {
-            $this->reportProblem($errStr);
-            return;
-        }
-
-        @stream_set_blocking($resource, 0);
-        @fwrite($resource, $payload);
-        @fclose($resource);
-
-        if ($error = error_get_last()) {
-            $errorMsg = sprintf('Type: %s Message: %s, File: %s, Line: %s', $error['type'], $error['message'], $error['file'], $error['line']);
-            $this->reportProblem($errorMsg);
-        }
+        $this->configuration->getTransportHandler()->handle($requestData);
     }
 
     /**
