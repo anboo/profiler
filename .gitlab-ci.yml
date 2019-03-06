@@ -20,5 +20,7 @@ build:
       - ./
 
 test:
+  dependencies:
+    - build
   script:
     - ./vendor/bin/phpunit tests/
