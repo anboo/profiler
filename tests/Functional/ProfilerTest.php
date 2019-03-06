@@ -8,10 +8,12 @@
 
 class ProfilerTest extends \PHPUnit\Framework\TestCase
 {
-    public function testStartSpan()
+    public function testStartAndFlushSpan()
     {
-        $checkFunction = function(\Anboo\Profiler\DTO\PreparedRequestData $preparedRequestData) {
+        $checkHandlerFunction = function(\Anboo\Profiler\DTO\PreparedRequestData $preparedRequestData) {
             $this->assertEquals('127.0.0.1', $preparedRequestData->getConfiguration()->getHost());
+            $this->assertEquals(27889, $preparedRequestData->getConfiguration()->getPort());
+            $this->assertEquals('PROJECTID', $preparedRequestData->getConfiguration()->getProjectId());
 
             $spansNames = array_map(function(\Anboo\Profiler\Span $span) {
                 return $span->getName();
@@ -29,7 +31,7 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
         $handler
             ->expects($this->once())
             ->method('handle')
-            ->with($this->callback($checkFunction))
+            ->with($this->callback($checkHandlerFunction))
         ;
 
         $configuration = new \Anboo\Profiler\Configuration(
@@ -38,6 +40,8 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
             $handler,
             $this->createMock(\Psr\Log\LoggerInterface::class)
         );
+
+        $configuration->setProjectId('PROJECTID');
 
         $profiler = \Anboo\Profiler\Profiler::get();
         $profiler->setConfiguration($configuration);
